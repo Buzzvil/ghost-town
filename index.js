@@ -108,7 +108,8 @@ var Worker = function (options) {
     this.pageClicker = 0;
     this.pages = {};
     
-    phantom.create({
+    phantom.create.apply(phantom, (options && options.phantomFlags || []).concat({
+        binary: options && options.phantomBinary,
         port: (options && options.phantomPort || 12300) + cluster.worker.id,
         onExit: process.exit
     }, function (proc) {
@@ -117,7 +118,7 @@ var Worker = function (options) {
         for (var i = this.pageCount; i--;) {
             this.done();
         }
-    }.bind(this));
+    }.bind(this)));
     
     process.on("message", this.onMessage.bind(this));
 };
