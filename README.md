@@ -1,16 +1,46 @@
-Simple queued PhantomJS clustering. https://npmjs.org/package/ghost-town
+Simple queued & clustered PhantomJS processing. https://www.npmjs.org/package/ghost-town
+
+---
+
+Need highly scalable PhantomJS processing? Ghost Town makes it frighteningly easy! For example, on-demand page rendering, dispatched through Thrift:
+
+    var town = require("ghost-town")();
+    
+    town.on("queue", function (page, data, next) {
+        ...
+        
+        page.renderBase64("jpeg", function (data) {
+            next(null, data);
+        });
+    });
+    
+    if (town.isMaster) {
+        thrift.createServer(Renderer, {
+            render: function (html, width, height, next) {
+                town.queue({
+                    html: html,
+                    width: width,
+                    height: height
+                }, function (err, data) {
+                    next(err, new Buffer(data, "base64"));
+                });
+            }
+        }).listen(1337);
+    }
+
+Ghost Town uses Node's Cluster API, so the master and worker share their code. On the master side, queue items and handle their results. On the worker side, process items and return their results.
 
 ---
 
 `town(options)`
 
 * `phantomBinary`: String to use for finding the PhantomJS binary. Default: Searches the PATH.
-* `phantomFlags`: Array of strings to use for the PhantomJS options. Default: Empty.
+* `phantomFlags`: Array of strings to use for the PhantomJS options. Default: `[]`.
 * `phantomPort`: Number to use for the PhantomJS port range. Default: `12300`.
-* `workerCount`: Number of workers to maintain. Default: CPU count.
+* `workerCount`: Number of workers to maintain. Default: `os.cpus().length`.
 * `workerDeath`: Number of items to process before restarting a worker. Default: `20`.
-* `pageCount`: Number of pages to maintain. Default: `1`.
-* `pageDeath`: Number of milliseconds to wait before before requeuing an item. Default: `120000`.
+* `pageCount`: Number of pages to process at a time. If your processing is mainly asynchronous (vs. e.g. mainly rendering), increasing this is recommended. Default: `1`.
+* `pageDeath`: Number of milliseconds to wait before before requeuing an item. If your processing is time-sensitive, decreasing this is recommended. Default: `120000`.
 
 Returns either a `Master` or `Worker` instance, depending on `town.isMaster`.
 
