@@ -11,7 +11,7 @@ var Master = function (options) {
     this.workerCount = options && options.workerCount || os.cpus().length;
     this.workerQueue = [];
     
-    this.itemTimeout = options && options.itemTimeout || 120000;
+    this.itemTimeout = options && options.pageDeath || 120000;
     this.itemClicker = 0;
     this.itemQueue = [];
     this.items = {};
