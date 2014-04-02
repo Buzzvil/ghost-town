@@ -110,7 +110,7 @@ var Worker = function (options) {
     
     phantom.create.apply(phantom, (options && options.phantomFlags || []).concat({
         binary: options && options.phantomBinary,
-        port: (options && options.phantomPort || 12300) + cluster.worker.id,
+        port: (options && options.phantomPort || 12300) + (cluster.worker.id % 200),
         onExit: process.exit
     }, function (proc) {
         this.phantom = proc;
