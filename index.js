@@ -131,7 +131,7 @@ Worker.prototype.onMessage = function (msg) {
             this.phantom.createPage(function (page) {
                 this.pageClicker++;
                 this.pages[msg.id] = page;
-                this.emit("queue", page, msg.id, msg.data);
+                this.emit("queue", page, msg.data, this.done.bind(this, msg.id));
             }.bind(this));
             break;
         }
