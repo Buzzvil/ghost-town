@@ -11,7 +11,7 @@ var Master = function (options) {
     this.workerCount = options && options.workerCount || os.cpus().length;
     this.workerQueue = [];
     
-    this.itemTimeout = options && options.itemTimeout || 120000;
+    this.itemTimeout = options && options.pageDeath || 120000;
     this.itemClicker = 0;
     this.itemQueue = [];
     this.items = {};
@@ -110,7 +110,7 @@ var Worker = function (options) {
     
     phantom.create.apply(phantom, (options && options.phantomFlags || []).concat({
         binary: options && options.phantomBinary,
-        port: (options && options.phantomPort || 12300) + cluster.worker.id,
+        port: (options && options.phantomPort || 12300) + (cluster.worker.id % 200),
         onExit: process.exit
     }, function (proc) {
         this.phantom = proc;
@@ -131,7 +131,7 @@ Worker.prototype.onMessage = function (msg) {
             this.phantom.createPage(function (page) {
                 this.pageClicker++;
                 this.pages[msg.id] = page;
-                this.emit("queue", page, msg.id, msg.data);
+                this.emit("queue", page, msg.data, this.done.bind(this, msg.id));
             }.bind(this));
             break;
         }
