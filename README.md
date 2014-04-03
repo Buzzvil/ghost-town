@@ -1,3 +1,4 @@
+[![npm](http://img.shields.io/npm/v/ghost-town.svg)](https://www.npmjs.org/package/ghost-town) [![dependencies](https://david-dm.org/buzzvil/ghost-town.svg?theme=shields.io)](https://david-dm.org/buzzvil/ghost-town)  
 Simple queued & clustered PhantomJS processing. https://www.npmjs.org/package/ghost-town
 
 ---
