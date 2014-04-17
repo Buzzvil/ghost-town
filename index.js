@@ -30,41 +30,41 @@ Master.prototype.onMessage = function (msg) {
         case "ready": {
             this.workerQueue.push(cluster.workers[msg.id]);
             this.process();
+            
             break;
         }
         case "done": {
-            if (msg.item = this.items[msg.id]) {
-                clearTimeout(msg.item.timeout);
-                msg.item.done(msg.err, msg.data);
+            if (this.items[msg.id]) {
+                clearTimeout(this.items[msg.id].timeout);
+                this.items[msg.id].done(msg.err, msg.data);
                 delete this.items[msg.id];
             }
+            
             break;
         }
     }
 };
 
-Master.prototype.onTimeout = function (worker, id) {
-    var item = this.items[id];
-    
-    worker.send({
+Master.prototype.onTimeout = function (item) {
+    item.worker.send({
         action: "cancel",
-        id: id
+        id: item.id
     });
     
-    delete this.items[id];
+    delete this.items[item.id];
     this.queue(item.data, item.done);
 };
 
 Master.prototype.onExit = function (worker) {
-    Object.keys(this.items).forEach(function (id) {
+    for (var id in this.items) {
         var item = this.items[id];
         
-        if (item.worker === worker.id) {
+        if (item.worker === worker) {
             clearTimeout(item.timeout);
             delete this.items[id];
             this.queue(item.data, item.done);
         }
-    }.bind(this));
+    }
     
     cluster.fork().on("message", this.onMessage.bind(this));
 };
@@ -86,8 +86,8 @@ Master.prototype.process = function () {
         var worker = this.workerQueue.shift();
         var item = this.itemQueue.shift();
         
-        item.worker = worker.id;
-        item.timeout = setTimeout(this.onTimeout.bind(this, worker, item.id), this.itemTimeout);
+        item.worker = worker;
+        item.timeout = setTimeout(this.onTimeout.bind(this, item), this.itemTimeout);
         this.items[item.id] = item;
         
         worker.send({
@@ -133,10 +133,12 @@ Worker.prototype.onMessage = function (msg) {
                 this.pages[msg.id] = page;
                 this.emit("queue", page, msg.data, this.done.bind(this, msg.id));
             }.bind(this));
+            
             break;
         }
         case "cancel": {
             delete this.pages[msg.id];
+            
             break;
         }
     }
