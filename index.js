@@ -7,6 +7,7 @@ var Master = function (options) {
     events.EventEmitter.call(this);
     
     this.isMaster = true;
+    this.running = true;
     
     this.workerCount = options && options.workerCount || os.cpus().length;
     this.workerQueue = [];
@@ -18,9 +19,7 @@ var Master = function (options) {
     
     cluster.on("exit", this.onExit.bind(this));
     
-    for (var i = this.workerCount; i--;) {
-        this.onExit();
-    }
+    this.start();
 };
 
 Master.prototype = Object.create(events.EventEmitter.prototype);
@@ -66,7 +65,25 @@ Master.prototype.onExit = function (worker) {
         }
     }.bind(this));
     
-    cluster.fork().on("message", this.onMessage.bind(this));
+    if (this.running) {
+        cluster.fork().on("message", this.onMessage.bind(this));
+    }
+};
+
+Master.prototype.start = function () {
+    this.running = true;
+    
+    for (var i = this.workerCount; i--;) {
+        this.onExit({});
+    }
+};
+
+Master.prototype.stop = function () {
+    this.running = false;
+    
+    for (var key in cluster.workers) {
+        cluster.workers[key].kill();
+    }
 };
 
 Master.prototype.queue = function (data, next) {
@@ -84,6 +101,11 @@ Master.prototype.queue = function (data, next) {
 Master.prototype.process = function () {
     while (this.workerQueue.length && this.itemQueue.length) {
         var worker = this.workerQueue.shift();
+        
+        if (!worker.process.connected) {
+            continue;
+        }
+        
         var item = this.itemQueue.shift();
         
         item.worker = worker.id;
