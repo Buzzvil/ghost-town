@@ -44,6 +44,9 @@ Ghost Town uses Node's Cluster API, so the master and worker share their code. O
 
 Returns either a `Master` or `Worker` instance, depending on `town.isMaster`.
 
+`Master#start()` and `Master#stop()`  
+Starts or stops processing. These spawn or kill workers and PhantomJS processes, so they're useful for managing resource usage or gracefully shutting down Node.
+
 `Master#queue(data, next)`  
 Queue an item for processing by a worker. `data` will be passed to `Worker!queue()`, and `next(err, data)` is called when complete.
 
