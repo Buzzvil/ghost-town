@@ -1,3 +1,4 @@
+[![npm](http://img.shields.io/npm/v/ghost-town.svg)](https://www.npmjs.org/package/ghost-town) [![dependencies](https://david-dm.org/buzzvil/ghost-town.svg?theme=shields.io)](https://david-dm.org/buzzvil/ghost-town)  
 Simple queued & clustered PhantomJS processing. https://www.npmjs.org/package/ghost-town
 
 ---
@@ -5,14 +6,6 @@ Simple queued & clustered PhantomJS processing. https://www.npmjs.org/package/gh
 Need highly scalable PhantomJS processing? Ghost Town makes it frighteningly easy! For example, on-demand page rendering, dispatched through Thrift:
 
     var town = require("ghost-town")();
-    
-    town.on("queue", function (page, data, next) {
-        ...
-        
-        page.renderBase64("jpeg", function (data) {
-            next(null, data);
-        });
-    });
     
     if (town.isMaster) {
         thrift.createServer(Renderer, {
@@ -26,6 +19,14 @@ Need highly scalable PhantomJS processing? Ghost Town makes it frighteningly eas
                 });
             }
         }).listen(1337);
+    } else {
+        town.on("queue", function (page, data, next) {
+            ...
+            
+            page.renderBase64("jpeg", function (data) {
+                next(null, data);
+            });
+        });
     }
 
 Ghost Town uses Node's Cluster API, so the master and worker share their code. On the master side, queue items and handle their results. On the worker side, process items and return their results.

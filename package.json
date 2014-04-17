@@ -1,6 +1,6 @@
 {
     "name": "ghost-town",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Simple queued & clustered PhantomJS processing.",
     "keywords": ["cluster", "phantomjs"],
     "homepage": "https://github.com/buzzvil/ghost-town",
@@ -14,6 +14,6 @@
     },
     "engines": {
         "node": "~0.10.26",
-        "npm": "~1.4.3"
+        "npm": "~1.4.6"
     }
 }
