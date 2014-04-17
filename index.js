@@ -101,6 +101,11 @@ Master.prototype.queue = function (data, next) {
 Master.prototype.process = function () {
     while (this.workerQueue.length && this.itemQueue.length) {
         var worker = this.workerQueue.shift();
+        
+        if (!worker.process.connected) {
+            continue;
+        }
+        
         var item = this.itemQueue.shift();
         
         item.worker = worker.id;
