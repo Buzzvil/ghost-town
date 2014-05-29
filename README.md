@@ -1,4 +1,4 @@
-[![npm](http://img.shields.io/npm/v/ghost-town.svg)](https://www.npmjs.org/package/ghost-town) [![dependencies](https://david-dm.org/buzzvil/ghost-town.svg?theme=shields.io)](https://david-dm.org/buzzvil/ghost-town)  
+[![npm](https://img.shields.io/npm/v/ghost-town.svg)](https://www.npmjs.org/package/ghost-town) [![dependencies](https://david-dm.org/buzzvil/ghost-town.svg?theme=shields.io)](https://david-dm.org/buzzvil/ghost-town)  
 Simple queued & clustered PhantomJS processing. https://www.npmjs.org/package/ghost-town
 
 ---
@@ -15,13 +15,17 @@ Need highly scalable PhantomJS processing? Ghost Town makes it frighteningly eas
                     width: width,
                     height: height
                 }, function (err, data) {
-                    next(err, new Buffer(data, "base64"));
+                    next(err, !err && new Buffer(data, "base64"));
                 });
             }
         }).listen(1337);
     } else {
         town.on("queue", function (page, data, next) {
-            ...
+            // sequential page setup
+            // page.set("viewportSize", ...)
+            // page.set("customHeaders", ...)
+            // page.set("onLoadFinished", ...)
+            // page.set("content", ...)
             
             page.renderBase64("jpeg", function (data) {
                 next(null, data);
@@ -56,4 +60,4 @@ Fired when a worker receives an item to process. `page` is the PhantomJS page, `
 
 ---
 
-© 2014 [Buzzvil](http://www.buzzvil.com), shared under the [MIT License](http://www.opensource.org/licenses/MIT).
+© 2014 [Buzzvil](http://www.buzzvil.com), shared under the [MIT license](http://www.opensource.org/licenses/MIT).
