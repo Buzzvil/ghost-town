@@ -13,6 +13,7 @@ var Master = function (options) {
     this.workerQueue = [];
     
     this.itemTimeout = options && options.pageDeath || 120000;
+    this.itemRetries = options && options.pageTries || 10;
     this.itemClicker = 0;
     this.itemQueue = [];
     this.items = {};
@@ -51,7 +52,12 @@ Master.prototype.onTimeout = function (item) {
     });
     
     delete this.items[item.id];
-    this.queue(item.data, item.done);
+    
+    if (item.retries === this.itemRetries) {
+        item.done(new Error("[ghost-town] max pageTries"));
+    } else {
+        this.queue(item.data, item.done, item.retries + 1);
+    }
 };
 
 Master.prototype.onExit = function (worker) {
@@ -61,7 +67,7 @@ Master.prototype.onExit = function (worker) {
         if (item.worker === worker) {
             clearTimeout(item.timeout);
             delete this.items[id];
-            this.queue(item.data, item.done);
+            this.queue(item.data, item.done, item.retries);
         }
     }
     
@@ -86,10 +92,11 @@ Master.prototype.stop = function () {
     }
 };
 
-Master.prototype.queue = function (data, next) {
+Master.prototype.queue = function (data, next, tries) {
     var item = {
         id: this.itemClicker++,
         timeout: -1,
+        retries: tries || 0,
         data: data,
         done: next
     };
