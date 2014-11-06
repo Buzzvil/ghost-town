@@ -3,16 +3,23 @@ var events = require("events");
 var phantom = require("phantom");
 var os = require("os");
 
-var Master = function (options) {
+var is = function (type, val, def) {
+    return typeof val === type ? val : def;
+};
+
+var Master = function (opts) {
+    opts = is("object", opts, {});
+    
     events.EventEmitter.call(this);
     
     this.isMaster = true;
     this.running = true;
     
-    this.workerCount = options && options.workerCount || os.cpus().length;
+    this.workerCount = is("number", opts.workerCount, os.cpus().length);
     this.workerQueue = [];
     
-    this.itemTimeout = options && options.pageDeath || 120000;
+    this.itemTimeout = is("number", opts.pageDeath, 120000);
+    this.itemRetries = is("number", opts.pageTries, -1);
     this.itemClicker = 0;
     this.itemQueue = [];
     this.items = {};
@@ -51,7 +58,12 @@ Master.prototype.onTimeout = function (item) {
     });
     
     delete this.items[item.id];
-    this.queue(item.data, item.done);
+    
+    if (item.retries === this.itemRetries) {
+        item.done(new Error("[ghost-town] max pageTries"));
+    } else {
+        this.queue(item.data, item.done, item.retries + 1);
+    }
 };
 
 Master.prototype.onExit = function (worker) {
@@ -61,7 +73,7 @@ Master.prototype.onExit = function (worker) {
         if (item.worker === worker) {
             clearTimeout(item.timeout);
             delete this.items[id];
-            this.queue(item.data, item.done);
+            this.queue(item.data, item.done, item.retries);
         }
     }
     
@@ -86,10 +98,11 @@ Master.prototype.stop = function () {
     }
 };
 
-Master.prototype.queue = function (data, next) {
+Master.prototype.queue = function (data, next, tries) {
     var item = {
         id: this.itemClicker++,
         timeout: -1,
+        retries: tries || 0,
         data: data,
         done: next
     };
@@ -120,19 +133,21 @@ Master.prototype.process = function () {
     }
 };
 
-var Worker = function (options) {
+var Worker = function (opts) {
+    opts = is("object", opts, {});
+    
     events.EventEmitter.call(this);  
     
     this.isMaster = false;
     
-    this.pageDeath = options && options.workerDeath || 20;
-    this.pageCount = options && options.pageCount || 1;
+    this.pageDeath = is("number", opts.workerDeath, 20);
+    this.pageCount = is("number", opts.pageCount, 1);
     this.pageClicker = 0;
     this.pages = {};
     
-    phantom.create.apply(phantom, (options && options.phantomFlags || []).concat({
-        binary: options && options.phantomBinary,
-        port: (options && options.phantomPort || 12300) + (cluster.worker.id % 200),
+    phantom.create.apply(phantom, (opts.phantomFlags || []).concat({
+        binary: opts.phantomBinary,
+        port: is("number", opts.phantomPort, 12300) + (cluster.worker.id % 200),
         onExit: process.exit
     }, function (proc) {
         this.phantom = proc;
@@ -194,6 +209,6 @@ Worker.prototype.done = function (id, err, data) {
     }
 };
 
-module.exports = function (options) {
-    return cluster.isMaster ? new Master(options) : new Worker(options);
+module.exports = function (opts) {
+    return cluster.isMaster ? new Master(opts) : new Worker(opts);
 };

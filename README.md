@@ -46,6 +46,7 @@ Ghost Town uses Node's Cluster API, so the master and worker share their code. O
 * `workerDeath`: Number of items to process before restarting a worker. Default: `20`.
 * `pageCount`: Number of pages to process at a time. If your processing is mainly asynchronous (vs. e.g. mainly rendering), increasing this is recommended. Default: `1`.
 * `pageDeath`: Number of milliseconds to wait before before requeuing an item. If your processing is time-sensitive, decreasing this is recommended. Default: `120000`.
+* `pageTries`: Number of times to retry items that have timed out. If your processing could fail forever, setting this is recommended. Default: `-1` (unlimited).
 
 Returns either a `Master` or `Worker` instance, depending on `town.isMaster`.
 
