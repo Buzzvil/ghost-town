@@ -47,6 +47,8 @@ Ghost Town uses Node's Cluster API, so the master and worker share their code. O
 * `pageCount`: Number of pages to process at a time. If your processing is mainly asynchronous (vs. e.g. mainly rendering), increasing this is recommended. Default: `1`.
 * `pageDeath`: Number of milliseconds to wait before before requeuing an item. If your processing is time-sensitive, decreasing this is recommended. Default: `120000`.
 * `pageTries`: Number of times to retry items that have timed out. If your processing could fail forever, setting this is recommended. Default: `-1` (unlimited).
+* `phantomStdout`: Custom stdout function in the form `function (data) {}` for the PhantomJS JavaScript space. Can be used to define custom output locations, loggers, formatting, etc. Default: `false` (use default PhantomJS output).
+* `phantomStderr`: Custom stderr function in the form `function (data) {}` for the PhantomJS JavaScript space. Can be used to define custom output locations, loggers, formatting, etc. Default: `false` (use default PhantomJS output).
 
 Returns either a `Master` or `Worker` instance, depending on `town.isMaster`.
 
