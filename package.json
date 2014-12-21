@@ -10,7 +10,7 @@
     "main": "./index",
     "repository": "git://github.com/buzzvil/ghost-town",
     "dependencies": {
-        "phantom": "~0.6.3"
+        "phantom": "~0.7.1"
     },
     "engines": {
         "node": "~0.10.28",
