@@ -148,6 +148,8 @@ var Worker = function (opts) {
     phantom.create.apply(phantom, (opts.phantomFlags || []).concat({
         binary: opts.phantomBinary,
         port: is("number", opts.phantomPort, 12300) + (cluster.worker.id % 200),
+        onStdout: function () {},
+        onStderr: function () {},
         onExit: process.exit
     }, function (proc) {
         this.phantom = proc;
