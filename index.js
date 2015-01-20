@@ -145,7 +145,8 @@ var Worker = function (opts) {
     this.pageClicker = 0;
     this.pages = {};
     
-    phantom.create.apply(phantom, (opts.phantomFlags || []).concat({
+    phantom.create({
+        parameters: opts.phantomFlags,
         binary: opts.phantomBinary,
         port: is("number", opts.phantomPort, 12300) + (cluster.worker.id % 200),
         onStdout: function () {},
@@ -157,7 +158,7 @@ var Worker = function (opts) {
         for (var i = this.pageCount; i--;) {
             this.done();
         }
-    }.bind(this)));
+    }.bind(this));
     
     process.on("message", this.onMessage.bind(this));
 };
