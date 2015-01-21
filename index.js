@@ -13,7 +13,7 @@ var Master = function (opts) {
     events.EventEmitter.call(this);
     
     this.isMaster = true;
-    this.running = true;
+    this.running = false;
     
     this.workerCount = is("number", opts.workerCount, os.cpus().length);
     this.workerQueue = [];
@@ -83,6 +83,10 @@ Master.prototype.onExit = function (worker) {
 };
 
 Master.prototype.start = function () {
+    if (this.running) {
+        return;
+    }
+    
     this.running = true;
     
     for (var i = this.workerCount; i--;) {
