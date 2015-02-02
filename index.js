@@ -13,7 +13,7 @@ var Master = function (opts) {
     events.EventEmitter.call(this);
     
     this.isMaster = true;
-    this.running = false;
+    this.isRunning = false;
     
     this._workerCount = is("number", opts.workerCount, os.cpus().length);
     this._workerQueue = [];
@@ -77,17 +77,17 @@ Master.prototype._onExit = function (worker) {
         }
     }
     
-    if (this.running) {
+    if (this.isRunning) {
         cluster.fork().on("message", this._onMessage.bind(this));
     }
 };
 
 Master.prototype.start = function () {
-    if (this.running) {
+    if (this.isRunning) {
         return;
     }
     
-    this.running = true;
+    this.isRunning = true;
     
     for (var i = this._workerCount; i--;) {
         this._onExit({});
@@ -95,7 +95,7 @@ Master.prototype.start = function () {
 };
 
 Master.prototype.stop = function () {
-    this.running = false;
+    this.isRunning = false;
     
     for (var key in cluster.workers) {
         cluster.workers[key].kill();
