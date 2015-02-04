@@ -1,7 +1,6 @@
 var cluster = require("cluster");
 var events = require("events");
 var phantom = require("phantom");
-var os = require("os");
 
 var is = function (type, val, def) {
     return val !== null && typeof val === type ? val : def;
@@ -15,10 +14,10 @@ var Master = function (opts) {
     this.isMaster = true;
     this.isRunning = false;
     
-    this._workerCount = is("number", opts.workerCount, os.cpus().length);
+    this._workerCount = is("number", opts.workerCount, 4);
     this._workerQueue = [];
     
-    this._itemTimeout = is("number", opts.pageDeath, 120000);
+    this._itemTimeout = is("number", opts.pageDeath, 30000);
     this._itemRetries = is("number", opts.pageTries, -1);
     this._itemClicker = 0;
     this._itemQueue = [];
@@ -135,7 +134,7 @@ var Worker = function (opts) {
     
     this.isMaster = false;
     
-    this._pageDeath = is("number", opts.workerDeath, 20);
+    this._pageDeath = is("number", opts.workerDeath, 25);
     this._pageCount = is("number", opts.pageCount, 1);
     this._pageClicker = 0;
     this._pages = {};
