@@ -9,7 +9,15 @@
     "author": "Teddy Cross <teddy@tkaz.ec> (http://tkaz.ec)",
     "main": "./index",
     "repository": "git://github.com/buzzvil/ghost-town",
+    "scripts": {
+        "test": "mocha -R list -s 60s"
+    },
     "dependencies": {
         "phantom": "~0.7.2"
+    },
+    "devDependencies": {
+        "async": "~0.9.0",
+        "chai": "~1.10.0",
+        "mocha": "~2.1.0"
     }
 }
