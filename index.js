@@ -1,10 +1,9 @@
 var cluster = require("cluster");
 var events = require("events");
 var phantom = require("phantom");
-var os = require("os");
 
 var is = function (type, val, def) {
-    return typeof val === type ? val : def;
+    return val !== null && typeof val === type ? val : def;
 };
 
 var Master = function (opts) {
@@ -13,120 +12,115 @@ var Master = function (opts) {
     events.EventEmitter.call(this);
     
     this.isMaster = true;
-    this.running = true;
+    this.isRunning = false;
     
-    this.workerCount = is("number", opts.workerCount, os.cpus().length);
-    this.workerQueue = [];
+    this._workerCount = is("number", opts.workerCount, 4);
+    this._workerQueue = [];
     
-    this.itemTimeout = is("number", opts.pageDeath, 120000);
-    this.itemRetries = is("number", opts.pageTries, -1);
-    this.itemClicker = 0;
-    this.itemQueue = [];
-    this.items = {};
+    this._itemTimeout = is("number", opts.pageDeath, 30000);
+    this._itemRetries = is("number", opts.pageTries, -1);
+    this._itemClicker = 0;
+    this._itemQueue = [];
+    this._items = {};
     
-    cluster.on("exit", this.onExit.bind(this));
+    cluster.on("exit", this._onExit.bind(this));
     
     this.start();
 };
 
 Master.prototype = Object.create(events.EventEmitter.prototype);
 
-Master.prototype.onMessage = function (msg) {
-    switch (msg.action) {
-        case "ready": {
-            this.workerQueue.push(cluster.workers[msg.id]);
-            this.process();
-            
-            break;
-        }
-        case "done": {
-            if (this.items[msg.id]) {
-                clearTimeout(this.items[msg.id].timeout);
-                this.items[msg.id].done(msg.err, msg.data);
-                delete this.items[msg.id];
-            }
-            
-            break;
-        }
+Master.prototype._onMessage = function (msg) {
+    if (is("object", msg, {}).ghost !== "town") {
+        return;
     }
+    
+    var item = this._items[msg.id];
+    if (item) {
+        delete this._items[msg.id];
+        clearTimeout(item.timeout);
+        item.done(msg.err, msg.data);
+    }
+    
+    this._workerQueue.push(cluster.workers[msg.worker]);
+    this._process();
 };
 
-Master.prototype.onTimeout = function (item) {
-    item.worker.send({
-        action: "cancel",
-        id: item.id
-    });
+Master.prototype._onTimeout = function (item) {
+    delete this._items[item.id];
     
-    delete this.items[item.id];
-    
-    if (item.retries === this.itemRetries) {
+    if (item.retries === this._itemRetries) {
         item.done(new Error("[ghost-town] max pageTries"));
     } else {
-        this.queue(item.data, item.done, item.retries + 1);
+        this.queue(item.data, true, item.done, item.retries + 1);
     }
 };
 
-Master.prototype.onExit = function (worker) {
-    for (var id in this.items) {
-        var item = this.items[id];
+Master.prototype._onExit = function (worker) {
+    for (var id in this._items) {
+        var item = this._items[id];
         
         if (item.worker === worker) {
+            delete this._items[id];
             clearTimeout(item.timeout);
-            delete this.items[id];
-            this.queue(item.data, item.done, item.retries);
+            this.queue(item.data, true, item.done, item.retries);
         }
     }
     
-    if (this.running) {
-        cluster.fork().on("message", this.onMessage.bind(this));
+    if (this.isRunning) {
+        cluster.fork().on("message", this._onMessage.bind(this));
     }
 };
 
 Master.prototype.start = function () {
-    this.running = true;
+    if (this.isRunning) {
+        return;
+    }
     
-    for (var i = this.workerCount; i--;) {
-        this.onExit({});
+    this.isRunning = true;
+    
+    for (var i = this._workerCount; i--;) {
+        this._onExit();
     }
 };
 
 Master.prototype.stop = function () {
-    this.running = false;
+    this.isRunning = false;
     
     for (var key in cluster.workers) {
         cluster.workers[key].kill();
     }
 };
 
-Master.prototype.queue = function (data, next, tries) {
+Master.prototype.queue = function (data, asap, next, tries) {
     var item = {
-        id: this.itemClicker++,
+        id: this._itemClicker++,
         timeout: -1,
         retries: tries || 0,
         data: data,
-        done: next
+        done: next || asap
     };
     
-    this.itemQueue.push(item);
-    this.process();
+    this._itemQueue[next && asap ? "unshift" : "push"](item);
+    this._process();
 };
 
-Master.prototype.process = function () {
-    while (this.workerQueue.length && this.itemQueue.length) {
-        var worker = this.workerQueue.shift();
+Master.prototype._process = function () {
+    while (this._workerQueue.length && this._itemQueue.length) {
+        var worker = this._workerQueue.shift();
         
-        if (!worker.process.connected) {
+        if (!worker || !worker.process.connected) {
             continue;
         }
         
-        var item = this.itemQueue.shift();
+        var item = this._itemQueue.shift();
         
         item.worker = worker;
-        item.timeout = setTimeout(this.onTimeout.bind(this, item), this.itemTimeout);
-        this.items[item.id] = item;
+        item.timeout = setTimeout(this._onTimeout.bind(this, item), this._itemTimeout);
+        this._items[item.id] = item;
         
         worker.send({
-            action: "process",
+            ghost: "town",
             id: item.id,
             data: item.data
         });
@@ -140,71 +134,63 @@ var Worker = function (opts) {
     
     this.isMaster = false;
     
-    this.pageDeath = is("number", opts.workerDeath, 20);
-    this.pageCount = is("number", opts.pageCount, 1);
-    this.pageClicker = 0;
-    this.pages = {};
+    this._pageDeath = is("number", opts.workerDeath, 25);
+    this._pageCount = is("number", opts.pageCount, 1);
+    this._pageClicker = 0;
+    this._pages = {};
     
-    phantom.create.apply(phantom, (opts.phantomFlags || []).concat({
+    phantom.create({
+        parameters: opts.phantomFlags,
         binary: opts.phantomBinary,
         port: is("number", opts.phantomPort, 12300) + (cluster.worker.id % 200),
+        onStdout: function () {},
+        onStderr: function () {},
         onExit: process.exit
     }, function (proc) {
         this.phantom = proc;
         
-        for (var i = this.pageCount; i--;) {
-            this.done();
+        for (var i = this._pageCount; i--;) {
+            process.send({
+                ghost: "town",
+                worker: cluster.worker.id
+            });
         }
-    }.bind(this)));
+    }.bind(this));
     
-    process.on("message", this.onMessage.bind(this));
+    process.on("message", this._onMessage.bind(this));
 };
 
 Worker.prototype = Object.create(events.EventEmitter.prototype);
 
-Worker.prototype.onMessage = function (msg) {
-    switch (msg.action) {
-        case "process": {
-            this.phantom.createPage(function (page) {
-                this.pageClicker++;
-                this.pages[msg.id] = page;
-                this.emit("queue", page, msg.data, this.done.bind(this, msg.id));
-            }.bind(this));
-            
-            break;
-        }
-        case "cancel": {
-            delete this.pages[msg.id];
-            
-            break;
-        }
+Worker.prototype._onMessage = function (msg) {
+    if (is("object", msg, {}).ghost !== "town") {
+        return;
     }
+    
+    this.phantom.createPage(function (page) {
+        this._pageClicker++;
+        this._pages[msg.id] = page;
+        this.emit("queue", page, msg.data, this._done.bind(this, msg.id));
+    }.bind(this));
 };
 
-Worker.prototype.done = function (id, err, data) {
-    if (!this.pages[id]) {
-        return process.send({
-            action: "ready",
-            id: cluster.worker.id
-        });
+Worker.prototype._done = function (id, err, data) {
+    if (!this._pages[id]) {
+        return;
     }
     
-    this.pages[id].close();
-    delete this.pages[id];
+    this._pages[id].close();
+    delete this._pages[id];
     
     process.send({
-        action: "done",
+        ghost: "town",
+        worker: cluster.worker.id,
         id: id,
         err: err,
         data: data
     });
     
-    if (this.pageClicker < this.pageDeath) {
-        process.send({
-            action: "ready",
-            id: cluster.worker.id
-        });
-    } else if (!Object.keys(this.pages).length) {
+    if (this._pageClicker >= this._pageDeath) {
         process.exit();
     }
 };
