@@ -1,3 +1,8 @@
+2.1.0 / 2015-02-27
+==================
+
+* Add the `workerShift` option. Use it if PhantomJS is occasionally never returning.
+
 2.0.0 / 2015-02-05
 ==================
 
