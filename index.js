@@ -134,7 +134,9 @@ var Worker = function (opts) {
     
     this.isMaster = false;
     
-    this._pageDeath = is("number", opts.workerDeath, 25);
+    this._workerDeath = is("number", opts.workerDeath, 25);
+    this._workerShift = is("number", opts.workerShift, -1);
+    
     this._pageCount = is("number", opts.pageCount, 1);
     this._pageClicker = 0;
     this._pages = {};
@@ -158,6 +160,10 @@ var Worker = function (opts) {
     }.bind(this));
     
     process.on("message", this._onMessage.bind(this));
+    
+    if (this._workerShift !== -1) {
+        setTimeout(process.exit, this._workerShift);
+    }
 };
 
 Worker.prototype = Object.create(events.EventEmitter.prototype);
@@ -190,7 +196,7 @@ Worker.prototype._done = function (id, err, data) {
         data: data
     });
     
-    if (this._pageClicker >= this._pageDeath) {
+    if (this._pageClicker >= this._workerDeath) {
         process.exit();
     }
 };

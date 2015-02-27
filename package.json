@@ -1,6 +1,6 @@
 {
     "name": "ghost-town",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "description": "Simple queued & clustered PhantomJS processing.",
     "keywords": ["cluster", "phantomjs", "queue"],
     "homepage": "https://github.com/buzzvil/ghost-town",

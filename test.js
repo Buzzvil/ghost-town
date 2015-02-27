@@ -260,6 +260,20 @@ if (cluster.isMaster) {
                 });
             });
             
+            it("should support workerShift", function (next) {
+                townSend = { workerShift: 50 };
+                var town = ghost({ workerCount: 1 });
+                var orig = Object.keys(cluster.workers);
+                
+                expect(orig).to.have.length(1);
+                
+                setTimeout(function () {
+                    expect(cluster.workers).to.not.have.keys(orig);
+                    
+                    next();
+                }, 500);
+            });
+            
             it("should support pageCount", function (next) {
                 townSend = { pageCount: 3 };
                 var town = ghost({ workerCount: 1 });
