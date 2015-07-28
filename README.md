@@ -7,34 +7,35 @@ Simple queued & clustered PhantomJS processing. https://www.npmjs.com/package/gh
 
 Need highly scalable PhantomJS processing? Ghost Town makes it frighteningly easy! For example, on-demand page rendering, dispatched through Thrift:
 
-    var town = require("ghost-town")();
-    
-    if (town.isMaster) {
-        thrift.createServer(Renderer, {
-            render: function (html, width, height, next) {
-                town.queue({
-                    html: html,
-                    width: width,
-                    height: height
-                }, function (err, data) {
-                    next(err, !err && new Buffer(data, "base64"));
-                });
-            }
-        }).listen(1337);
-    } else {
-        town.on("queue", function (page, data, next) {
-            // sequential page setup
-            // page.set("viewportSize", ...)
-            // page.set("customHeaders", ...)
-            // page.set("onLoadFinished", ...)
-            // page.set("content", ...)
-            
-            page.renderBase64("jpeg", function (data) {
-                next(null, data);
-            });
-        });
-    }
+```js
+var town = require("ghost-town")();
 
+if (town.isMaster) {
+    thrift.createServer(Renderer, {
+        render: function (html, width, height, next) {
+            town.queue({
+                html: html,
+                width: width,
+                height: height
+            }, function (err, data) {
+                next(err, !err && new Buffer(data, "base64"));
+            });
+        }
+    }).listen(1337);
+} else {
+    town.on("queue", function (page, data, next) {
+        // sequential page setup
+        // page.set("viewportSize", ...)
+        // page.set("customHeaders", ...)
+        // page.set("onLoadFinished", ...)
+        // page.set("content", ...)
+        
+        page.renderBase64("jpeg", function (data) {
+            next(null, data);
+        });
+    });
+}
+```
 Ghost Town uses Node's Cluster API, so the master and worker share their code. On the master side, queue items and handle their results. On the worker side, process items and return their results.
 
 ---
@@ -42,7 +43,7 @@ Ghost Town uses Node's Cluster API, so the master and worker share their code. O
 `town(options)`
 
 * `phantomBinary`: String path to the PhantomJS executable. Default: Automatic via `$PATH`.
-* `phantomFlags`: Object of strings to use for the PhantomJS options. Default: `{}`.
+* `phantomFlags`: Object of strings to use for the PhantomJS options. Default: `{}`. Example: {'load-images':false}
 * `phantomPort`: Number to use for the PhantomJS port range. Default: `12300` (plus 200).
 * `workerCount`: Number of workers to maintain. One or two per CPU is recommended. Default: `4`.
 * `workerDeath`: Number of items to process before restarting a worker. Default: `25`.
