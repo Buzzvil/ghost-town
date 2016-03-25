@@ -66,6 +66,11 @@ Master.prototype._onExit = function (worker) {
             this.queue(item.data, true, item.done, item.retries);
         }
     }
+    if(worker){
+        var index = this._workerQueue.findIndex((x)=>{return (x.id===worker.id)})
+        if(index>=0)
+            this._workerQueue.splice(index,1)
+    }
     
     if (this.isRunning) {
         cluster.fork().on("message", this._onMessage.bind(this));
