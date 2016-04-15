@@ -140,15 +140,16 @@ var Worker = function (opts) {
     this._pageCount = is("number", opts.pageCount, 1);
     this._pageClicker = 0;
     this._pages = {};
+
+    //new phantom takes arguments as array
+    if(opts.phantomFlags){
+        var flags = []
+        for(var flag in opts.phantomFlags){
+            flags.push("--"+flag+"="+opts.phantomFlags[flag])
+        }
+    }
     
-    phantom.create({
-        parameters: opts.phantomFlags,
-        binary: opts.phantomBinary,
-        port: is("number", opts.phantomPort, 12300) + (cluster.worker.id % 200),
-        onStdout: function () {},
-        onStderr: function () {},
-        onExit: process.exit
-    }, function (proc) {
+    phantom.create(flags).then(function (proc) {
         this.phantom = proc;
         
         for (var i = this._pageCount; i--;) {
@@ -173,7 +174,7 @@ Worker.prototype._onMessage = function (msg) {
         return;
     }
     
-    this.phantom.createPage(function (page) {
+    this.phantom.createPage().then(function (page) {
         this._pageClicker++;
         this._pages[msg.id] = page;
         this.emit("queue", page, msg.data, this._done.bind(this, msg.id));
