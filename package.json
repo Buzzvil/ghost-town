@@ -1,6 +1,6 @@
 {
     "name": "ghost-town",
-    "version": "2.1.0",
+    "version": "3.0.0",
     "description": "Simple queued & clustered PhantomJS processing.",
     "keywords": ["cluster", "phantomjs", "queue"],
     "homepage": "https://github.com/buzzvil/ghost-town",
@@ -13,7 +13,7 @@
         "test": "mocha -R list -s 60s"
     },
     "dependencies": {
-        "phantom": "~0.7.2"
+        "phantom": "~2.0.10"
     },
     "devDependencies": {
         "async": "~0.9.0",
