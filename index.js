@@ -163,11 +163,16 @@ var Worker = function (opts) {
     process.on("message", this._onMessage.bind(this));
     
     if (this._workerShift !== -1) {
-        setTimeout(process.exit, this._workerShift);
+        setTimeout(this._exitProcess.bind(this), this._workerShift);
     }
 };
 
 Worker.prototype = Object.create(events.EventEmitter.prototype);
+
+Worker.prototype._exitProcess = function (){
+    this.phantom.exit()
+    process.exit()
+}
 
 Worker.prototype._onMessage = function (msg) {
     if (is("object", msg, {}).ghost !== "town") {
@@ -198,7 +203,7 @@ Worker.prototype._done = function (id, err, data) {
     });
     
     if (this._pageClicker >= this._workerDeath) {
-        process.exit();
+        this._exitProcess()
     }
 };
 
