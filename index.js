@@ -171,7 +171,7 @@ Worker.prototype = Object.create(events.EventEmitter.prototype);
 
 Worker.prototype._exitProcess = function (){
     this.phantom.exit()
-    process.exit()
+    this.phantom.process.on("close", process.exit)
 }
 
 Worker.prototype._onMessage = function (msg) {
