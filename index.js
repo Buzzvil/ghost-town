@@ -140,15 +140,16 @@ var Worker = function (opts) {
     this._pageCount = is("number", opts.pageCount, 1);
     this._pageClicker = 0;
     this._pages = {};
+
+    //new phantom takes arguments as array
+    if(opts.phantomFlags){
+        var flags = []
+        for(var flag in opts.phantomFlags){
+            flags.push("--"+flag+"="+opts.phantomFlags[flag])
+        }
+    }
     
-    phantom.create({
-        parameters: opts.phantomFlags,
-        binary: opts.phantomBinary,
-        port: is("number", opts.phantomPort, 12300) + (cluster.worker.id % 200),
-        onStdout: function () {},
-        onStderr: function () {},
-        onExit: process.exit
-    }, function (proc) {
+    phantom.create(flags).then(function (proc) {
         this.phantom = proc;
         
         for (var i = this._pageCount; i--;) {
@@ -162,18 +163,23 @@ var Worker = function (opts) {
     process.on("message", this._onMessage.bind(this));
     
     if (this._workerShift !== -1) {
-        setTimeout(process.exit, this._workerShift);
+        setTimeout(this._exitProcess.bind(this), this._workerShift);
     }
 };
 
 Worker.prototype = Object.create(events.EventEmitter.prototype);
+
+Worker.prototype._exitProcess = function (){
+    this.phantom.exit()
+    this.phantom.process.on("close", process.exit)
+}
 
 Worker.prototype._onMessage = function (msg) {
     if (is("object", msg, {}).ghost !== "town") {
         return;
     }
     
-    this.phantom.createPage(function (page) {
+    this.phantom.createPage().then(function (page) {
         this._pageClicker++;
         this._pages[msg.id] = page;
         this.emit("queue", page, msg.data, this._done.bind(this, msg.id));
@@ -197,7 +203,7 @@ Worker.prototype._done = function (id, err, data) {
     });
     
     if (this._pageClicker >= this._workerDeath) {
-        process.exit();
+        this._exitProcess()
     }
 };
 
