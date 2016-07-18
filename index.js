@@ -175,11 +175,11 @@ Worker.prototype._onMessage = function (msg) {
         return;
     }
     
-    this.phantom.createPage(function (page) {
+    this.phantom.createPage().then((page) => {
         this._pageClicker++;
         this._pages[msg.id] = page;
         this.emit("queue", page, msg.data, this._done.bind(this, msg.id));
-    }.bind(this));
+    });
 };
 
 Worker.prototype._done = function (id, err, data) {
