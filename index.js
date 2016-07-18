@@ -141,23 +141,25 @@ var Worker = function (opts) {
     this._pageClicker = 0;
     this._pages = {};
     
-    phantom.create({
-        parameters: opts.phantomFlags,
-        binary: opts.phantomBinary,
-        port: is("number", opts.phantomPort, 12300) + (cluster.worker.id % 200),
-        onStdout: function () {},
-        onStderr: function () {},
-        onExit: process.exit
-    }, function (proc) {
+    var flagArr = [];
+    var flagObj = is("object", opts.phantomFlags, {});
+    
+    for (let key in flagObj) {
+        flagArr.push("--" + key + "=" + flagObj[key]);
+    }
+    
+    phantom.create(flagArr, {
+        phantomPath: opts.phantomBinary,
+    }).then((proc) => {
         this.phantom = proc;
         
-        for (var i = this._pageCount; i--;) {
+        for (let i = this._pageCount; i--;) {
             process.send({
                 ghost: "town",
-                worker: cluster.worker.id
+                worker: cluster.worker.id,
             });
         }
-    }.bind(this));
+    });
     
     process.on("message", this._onMessage.bind(this));
     
