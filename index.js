@@ -1,6 +1,6 @@
-var cluster = require("cluster");
-var events = require("events");
-var phantom = require("phantom");
+const cluster = require("cluster");
+const events = require("events");
+const phantom = require("phantom");
 
 var is = function (type, val, def) {
     return val !== null && typeof val === type ? val : def;

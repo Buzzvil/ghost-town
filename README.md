@@ -43,7 +43,6 @@ Ghost Town uses Node's Cluster API, so the master and worker share their code. O
 
 * `phantomBinary`: String path to the PhantomJS executable. Default: Automatic via `$PATH`.
 * `phantomFlags`: Object of strings to use for the PhantomJS options. Default: `{}`.
-* `phantomPort`: Number to use for the PhantomJS port range. Default: `12300` (plus 200).
 * `workerCount`: Number of workers to maintain. One or two per CPU is recommended. Default: `4`.
 * `workerDeath`: Number of items to process before restarting a worker. Default: `25`.
 * `workerShift`: Number of milliseconds to wait before restarting a worker. Default: `-1` (forever).
