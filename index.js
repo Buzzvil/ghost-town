@@ -98,7 +98,7 @@ class Master extends events.EventEmitter {
             timeout: -1,
             retries: tries || 0,
             data: data,
-            done: next || asap
+            done: next || asap,
         };
         
         this._itemQueue[next && asap ? "unshift" : "push"](item);
@@ -122,7 +122,7 @@ class Master extends events.EventEmitter {
             worker.send({
                 ghost: "town",
                 id: item.id,
-                data: item.data
+                data: item.data,
             });
         }
     }
@@ -166,7 +166,7 @@ class Worker extends events.EventEmitter {
         process.on("message", this._onMessage.bind(this));
         
         if (this._workerShift !== -1) {
-            setTimeout(process.exit, this._workerShift);
+            setTimeout(this._exit.bind(this), this._workerShift);
         }
     }
     
@@ -195,15 +195,20 @@ class Worker extends events.EventEmitter {
             worker: cluster.worker.id,
             id: id,
             err: err,
-            data: data
+            data: data,
         });
         
         if (this._pageClicker >= this._workerDeath) {
-            process.exit();
+            this._exit();
         }
+    }
+    
+    _exit () {
+        this.phantom.process.on("exit", process.exit);
+        this.phantom.exit();
     }
 }
 
-module.exports = function (opts) {
+module.exports = (opts) => {
     return cluster.isMaster ? new Master(opts) : new Worker(opts);
 };
