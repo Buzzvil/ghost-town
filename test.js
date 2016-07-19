@@ -1,3 +1,5 @@
+"use strict";
+
 const async = require("async");
 const child = require("child_process");
 const cluster = require("cluster");

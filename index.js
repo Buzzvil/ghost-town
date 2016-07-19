@@ -1,3 +1,5 @@
+"use strict";
+
 const cluster = require("cluster");
 const events = require("events");
 const phantom = require("phantom");
