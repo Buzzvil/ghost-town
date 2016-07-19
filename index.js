@@ -2,11 +2,11 @@ const cluster = require("cluster");
 const events = require("events");
 const phantom = require("phantom");
 
-var is = function (type, val, def) {
+const is = function (type, val, def) {
     return val !== null && typeof val === type ? val : def;
 };
 
-var Master = function (opts) {
+const Master = function (opts) {
     opts = is("object", opts, {});
     
     events.EventEmitter.call(this);
@@ -35,7 +35,8 @@ Master.prototype._onMessage = function (msg) {
         return;
     }
     
-    var item = this._items[msg.id];
+    const item = this._items[msg.id];
+    
     if (item) {
         delete this._items[msg.id];
         clearTimeout(item.timeout);
@@ -57,8 +58,8 @@ Master.prototype._onTimeout = function (item) {
 };
 
 Master.prototype._onExit = function (worker) {
-    for (var id in this._items) {
-        var item = this._items[id];
+    for (let id in this._items) {
+        const item = this._items[id];
         
         if (item.worker === worker) {
             delete this._items[id];
@@ -79,7 +80,7 @@ Master.prototype.start = function () {
     
     this.isRunning = true;
     
-    for (var i = this._workerCount; i--;) {
+    for (let i = this._workerCount; i--;) {
         this._onExit();
     }
 };
@@ -87,13 +88,13 @@ Master.prototype.start = function () {
 Master.prototype.stop = function () {
     this.isRunning = false;
     
-    for (var key in cluster.workers) {
+    for (let key in cluster.workers) {
         cluster.workers[key].kill();
     }
 };
 
 Master.prototype.queue = function (data, asap, next, tries) {
-    var item = {
+    const item = {
         id: this._itemClicker++,
         timeout: -1,
         retries: tries || 0,
@@ -107,13 +108,13 @@ Master.prototype.queue = function (data, asap, next, tries) {
 
 Master.prototype._process = function () {
     while (this._workerQueue.length && this._itemQueue.length) {
-        var worker = this._workerQueue.shift();
+        const worker = this._workerQueue.shift();
         
         if (!worker || !worker.process.connected) {
             continue;
         }
         
-        var item = this._itemQueue.shift();
+        const item = this._itemQueue.shift();
         
         item.worker = worker;
         item.timeout = setTimeout(this._onTimeout.bind(this, item), this._itemTimeout);
@@ -127,7 +128,7 @@ Master.prototype._process = function () {
     }
 };
 
-var Worker = function (opts) {
+const Worker = function (opts) {
     opts = is("object", opts, {});
     
     events.EventEmitter.call(this);  
@@ -141,8 +142,8 @@ var Worker = function (opts) {
     this._pageClicker = 0;
     this._pages = {};
     
-    var flagArr = [];
-    var flagObj = is("object", opts.phantomFlags, {});
+    const flagArr = [];
+    const flagObj = is("object", opts.phantomFlags, {});
     
     for (let key in flagObj) {
         flagArr.push("--" + key + "=" + flagObj[key]);

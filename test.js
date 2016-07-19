@@ -1,9 +1,10 @@
-var async = require("async");
-var child = require("child_process");
-var cluster = require("cluster");
-var expect = require("chai").expect;
-var ghost = require("./");
-var townSend;
+const async = require("async");
+const child = require("child_process");
+const cluster = require("cluster");
+const expect = require("chai").expect;
+const ghost = require("./");
+
+let townSend;
 
 if (cluster.isMaster) {
     cluster.setupMaster({
@@ -228,16 +229,6 @@ if (cluster.isMaster) {
                     phantomFlags: { "disk-cache": "true" }
                 }, function (err, out) {
                     expect(out).to.contain("--disk-cache=true");
-                    
-                    next();
-                });
-            });
-            
-            it("should support phantomPort", function (next) {
-                pid({
-                    phantomPort: 45600
-                }, function (err, out) {
-                    expect(out).to.match(/456\d\d/);
                     
                     next();
                 });
