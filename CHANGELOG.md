@@ -1,7 +1,7 @@
 3.0.0 / 2016-07-22
 ==================
 
-Ghost Town 3 is a major upgrade release using new major versions of every dependency. Please carefully review each before upgrading! For the `phantom` upgrade guide, see: https://github.com/amir20/phantomjs-node#migrating-from-10x
+Ghost Town 3 is a major upgrade release using new versions of every dependency. Please carefully review each before upgrading! For the `phantom` upgrade guide, see: https://github.com/amir20/phantomjs-node#migrating-from-10x
 
 * Support Node 4+.
 * Support PhantomJS 2.1+.

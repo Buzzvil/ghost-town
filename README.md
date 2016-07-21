@@ -35,7 +35,9 @@ Need highly scalable PhantomJS processing? Ghost Town makes it frighteningly eas
         });
     }
 
-Ghost Town uses Node's Cluster API, so the master and worker share their code. On the master side, queue items and handle their results. On the worker side, process items and return their results. Requires Node 4+ and PhantomJS 2.1+.
+Ghost Town uses Node's Cluster API, so the master and worker share their code. On the master side, queue items and handle their results. On the worker side, process items and return their results.
+
+Requires Node 4+ and PhantomJS 2.1+.
 
 ---
 
@@ -54,7 +56,7 @@ Starts Ghost Town and returns a `Master` or a `Worker` instance exposing the fol
 
 * `Master#isRunning` is set by `Master#start()` and `Master#stop()`.
 * `Master#isMaster` and `Worker#isMaster` can be used to separate master- and worker-specific code.
-* `Worker#phantom` is the PhantomJS wrapper object provided by [phantom](https://www.npmjs.com/package/phantom). Only necessary for advanced uses such as listening to the `.stdout` and `.stderr` streams.
+* `Worker#phantom` is the PhantomJS wrapper object provided by [phantom](https://www.npmjs.com/package/phantom).
 
 `Master#start()` and `Master#stop()`  
 Starts or stops processing. These spawn or kill workers and PhantomJS processes, so they're useful for managing resource usage or gracefully shutting down Node.
