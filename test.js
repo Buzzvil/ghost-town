@@ -90,7 +90,7 @@ if (cluster.isMaster) {
 
             it("should support pageTries (x)", function (next) {
                 townSend = {};
-                var town = ghost({ pageDeath: 0, pageTries: 42 });
+                let town = ghost({ pageDeath: 0, pageTries: 42 });
                 
                 town.queue(0, function (err) {
                     expect(err).to.be.an.instanceof(Error);
@@ -102,7 +102,7 @@ if (cluster.isMaster) {
         
         describe("#start()", function () {
             it("should start Ghost Town", function () {
-                var town = ghost();
+                let town = ghost();
                 
                 expect(town).to.respondTo("start");
                 expect(town.isRunning).to.be.true;
@@ -115,7 +115,7 @@ if (cluster.isMaster) {
             });
             
             it("should restart Ghost Town and all workers", function () {
-                var town = ghost({ workerCount: 5 });
+                let town = ghost({ workerCount: 5 });
                 
                 town.stop();
                 town._workerCount = 11;
@@ -126,7 +126,7 @@ if (cluster.isMaster) {
             });
             
             it("should be idempotent", function () {
-                var town = ghost({ workerCount: 5 });
+                let town = ghost({ workerCount: 5 });
                 
                 town.start();
                 town.start();
@@ -138,7 +138,7 @@ if (cluster.isMaster) {
         
         describe("#stop()", function () {
             it("should stop Ghost Town", function () {
-                var town = ghost();
+                let town = ghost();
                 
                 town.stop();
                 
@@ -147,7 +147,7 @@ if (cluster.isMaster) {
             });
             
             it("should stop all workers", function () {
-                var town = ghost();
+                let town = ghost();
                 
                 town.stop();
                 
@@ -157,14 +157,14 @@ if (cluster.isMaster) {
         
         describe("#queue()", function () {
             it("should process items", function () {
-                var town = ghost();
+                let town = ghost();
                 
                 expect(town).to.respondTo("queue");
             });
             
             it("should return results", function (next) {
                 townSend = {};
-                var town = ghost();
+                let town = ghost();
                 
                 town.queue(42, function (err, val) {
                     expect(err).to.be.null;
@@ -175,13 +175,13 @@ if (cluster.isMaster) {
             });
             
             it("should support prepending", function () {
-                var town = ghost();
-                var curr = town._itemQueue;
+                let town = ghost();
+                let curr = town._itemQueue;
                 
                 town.queue(0, function () {});
                 town.queue(0, function () {});
                 
-                var orig = curr.slice();
+                let orig = curr.slice();
                 
                 town.queue(0, town.queue);
                 
@@ -213,42 +213,28 @@ if (cluster.isMaster) {
         this.timeout(5000);
         
         describe("constructor", function () {
-            var pid = function (send, next) {
-                townSend = send;
-                townSend._test = "pid";
-                var town = ghost({ workerCount: 1 });
+            // Pending release of https://github.com/amir20/phantomjs-node/pull/507
+            it("should support phantomBinary");
+            
+            it("should support phantomFlags", function (next) {
+                townSend = { _test: "pid", phantomFlags: { "disk-cache": "true" } };
+                let town = ghost({ workerCount: 1 });
                 
                 town.queue(null, function (err, val) {
                     expect(err).to.be.null;
                     
-                    child.exec("ps -p " + val + " -o command | sed 1d", next);
-                });
-            };
-            
-            it("should support phantomBinary", function (next) {
-                pid({
-                    phantomBinary: "ghost-town"
-                }, function (err, out) {
-                    next();
-                });
-                
-                setTimeout(next, 1000);
-            });
-            
-            it("should support phantomFlags", function (next) {
-                pid({
-                    phantomFlags: { "disk-cache": "true" }
-                }, function (err, out) {
-                    expect(out).to.contain("--disk-cache=true");
-                    
-                    next();
+                    child.exec("ps -p " + val + " -o command | sed 1d", function (err, out) {
+                        expect(out).to.contain("--disk-cache=true");
+                        
+                        next();
+                    });
                 });
             });
             
             it("should support workerDeath", function (next) {
                 townSend = { workerDeath: 10 };
-                var town = ghost({ workerCount: 1 });
-                var orig = Object.keys(cluster.workers);
+                let town = ghost({ workerCount: 1 });
+                let orig = Object.keys(cluster.workers);
                 
                 expect(orig).to.have.length(1);
                 
@@ -263,9 +249,9 @@ if (cluster.isMaster) {
             });
             
             it("should support workerShift", function (next) {
-                townSend = { workerShift: 50 };
-                var town = ghost({ workerCount: 1 });
-                var orig = Object.keys(cluster.workers);
+                townSend = { workerShift: 10 };
+                let town = ghost({ workerCount: 1 });
+                let orig = Object.keys(cluster.workers);
                 
                 expect(orig).to.have.length(1);
                 
@@ -273,12 +259,12 @@ if (cluster.isMaster) {
                     expect(cluster.workers).to.not.have.keys(orig);
                     
                     next();
-                }, 500);
+                }, 2000);
             });
             
             it("should support pageCount", function (next) {
                 townSend = { pageCount: 3 };
-                var town = ghost({ workerCount: 1 });
+                let town = ghost({ workerCount: 1 });
                 
                 town.queue(0, function () { setImmediate(function () {
                     town.queue(0);
@@ -300,14 +286,14 @@ if (cluster.isMaster) {
         describe("!queue", function () {
             it("should pass arguments", function (next) {
                 townSend = { _test: "passArgs" };
-                var town = ghost();
+                let town = ghost();
                 
                 town.queue(42, next);
             });
             
             it("should have an idempotent callback", function (next) {
                 townSend = { _test: "passOnce" };
-                var town = ghost({ workerCount: 3 });
+                let town = ghost({ workerCount: 3 });
                 
                 town.queue(0, function (err, val) {
                     setTimeout(function () {
@@ -325,7 +311,7 @@ if (cluster.isMaster) {
         
         it("should handle heavy loads", function (next) {
             townSend = {};
-            var town = ghost();
+            let town = ghost();
             
             async.times(500, function (n, next) {
                 town.queue(n / 100, function (err, val) {
@@ -342,11 +328,11 @@ if (cluster.isMaster) {
         
         it("should handle many timeouts", function (next) {
             townSend = {};
-            var town = ghost({ pageDeath: 100, pageTries: 0 });
+            let town = ghost({ pageDeath: 100, pageTries: 0 });
             
             async.times(100, function (n, next) {
-                town.queue(n % 2 ? (n / 100) : 101, function (err, val) {
-                    if (n % 2) {
+                town.queue(n % 1 ? (n / 100) : 101, function (err, val) {
+                    if (n % 1) {
                         if (err) {
                             next(new Error("shouldn't have timed out"));
                         } else if (val !== n / 100) {
