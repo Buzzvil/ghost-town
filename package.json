@@ -1,23 +1,23 @@
 {
     "name": "ghost-town",
-    "version": "2.1.0",
+    "version": "3.0.0",
     "description": "Simple queued & clustered PhantomJS processing.",
     "keywords": ["cluster", "phantomjs", "queue"],
-    "homepage": "https://github.com/buzzvil/ghost-town",
-    "bugs": "https://github.com/buzzvil/ghost-town/issues",
+    "homepage": "https://github.com/Buzzvil/ghost-town",
+    "bugs": "https://github.com/Buzzvil/ghost-town/issues",
     "license": "MIT",
-    "author": "Teddy Cross <teddy@tkaz.ec> (http://tkaz.ec)",
+    "author": "Teddy Cross <teddy@teddy.io> (https://teddy.io)",
     "main": "./index",
-    "repository": "git://github.com/buzzvil/ghost-town",
+    "repository": "Buzzvil/ghost-town",
     "scripts": {
         "test": "mocha -R list -s 60s"
     },
     "dependencies": {
-        "phantom": "~0.7.2"
+        "phantom": "~2.1.12"
     },
     "devDependencies": {
-        "async": "~0.9.0",
-        "chai": "~1.10.0",
-        "mocha": "~2.1.0"
+        "async": "~2.0.0",
+        "chai": "~3.5.0",
+        "mocha": "~2.5.3"
     }
 }
