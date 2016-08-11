@@ -51,6 +51,7 @@ Requires Node 4+ and PhantomJS 2.1+.
 * `pageCount`: Number of pages to process at a time. If your processing is mostly asynchronous (vs. e.g. render blocked), increasing this is recommended. Default: `1`.
 * `pageDeath`: Number of milliseconds to wait before before requeuing an item. If your processing is time-sensitive, decreasing this is recommended. Default: `30000`.
 * `pageTries`: Number of times to retry items that have timed out. If your processing could fail forever, configuring this is recommended. Default: `-1` (unlimited).
+* `deferStart`: Do not start ghost-town on creation, allowing defered startup. Default: `false`.
 
 Starts Ghost Town and returns a `Master` or a `Worker` instance exposing the following.
 
