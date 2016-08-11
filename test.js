@@ -40,6 +40,11 @@ if (cluster.isMaster) {
         this.timeout(5000);
         
         describe("constructor", function () {
+            it("should defer start()", function () {
+                let town = ghost({deferStart: true});
+                expect(town.isRunning).to.equal(false);
+            });
+
             it("should support workerCount", function () {
                 ghost({ workerCount: 8 });
                 
