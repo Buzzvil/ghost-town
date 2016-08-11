@@ -28,7 +28,7 @@ class Master extends events.EventEmitter {
         
         cluster.on("exit", this._onExit.bind(this));
         
-        this.start();
+        !opts.deferStart &&  this.start();
     }
     
     _onMessage (msg) {
