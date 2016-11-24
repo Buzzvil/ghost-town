@@ -47,6 +47,11 @@ class Master extends events.EventEmitter {
         this._workerQueue.push(cluster.workers[msg.worker]);
         this._process();
     }
+    if(worker){
+        var index = this._workerQueue.findIndex((x)=>{return (x.id===worker.id)})
+        if(index>=0)
+            this._workerQueue.splice(index,1)
+    }
     
     _onTimeout (item) {
         delete this._items[item.id];
