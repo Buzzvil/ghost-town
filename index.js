@@ -1,6 +1,6 @@
 "use strict";
 
-const cluster = require("cluster");
+const cluster = require("recluster");
 const events = require("events");
 const phantom = require("phantom");
 
@@ -28,7 +28,7 @@ class Master extends events.EventEmitter {
         
         cluster.on("exit", this._onExit.bind(this));
         
-        this.start();
+        !opts.deferStart &&  this.start();
     }
     
     _onMessage (msg) {
