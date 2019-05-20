@@ -1,0 +1,8 @@
+kind: pipeline
+name: build
+
+steps:
+- name: test clone
+  image: node
+  commands:
+  - ls
